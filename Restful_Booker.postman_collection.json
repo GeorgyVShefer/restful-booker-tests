@@ -1,0 +1,1755 @@
+{
+  "info": {
+    "name": "RESTful Booker API Test Assignment",
+    "description": "Автоматизированные проверки по тест-кейсам Test_Cases.xlsx. Публичный стенд сбрасывает данные примерно каждые 10 минут.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://restful-booker.herokuapp.com"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "bookingId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Auth",
+      "item": [
+        {
+          "name": "AUTH-001 Valid credentials",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"admin\",\"password\":\"password123\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200',()=>pm.response.to.have.status(200));",
+                  "const j=pm.response.json(); pm.test('Token returned',()=>pm.expect(j.token).to.be.a('string').and.not.empty); pm.collectionVariables.set('token',j.token);",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-002 Invalid password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"admin\",\"password\":\"wrong\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 per contract',()=>pm.response.to.have.status(200));",
+                  "pm.test('Bad credentials',()=>pm.expect(pm.response.json()).to.have.property('reason','Bad credentials'));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-003 Missing password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"username\":\"admin\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200 per contract',()=>pm.response.to.have.status(200));",
+                  "pm.test('Bad credentials',()=>pm.expect(pm.response.json().reason).to.eql('Bad credentials'));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 Create Booking",
+      "item": [
+        {
+          "name": "BOOK-POST-001 Create valid booking",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstname\": \"Alexander\",\n  \"lastname\": \"Ivanov\",\n  \"totalprice\": 123,\n  \"depositpaid\": true,\n  \"bookingdates\": {\n    \"checkin\": \"2026-10-01\",\n    \"checkout\": \"2026-10-02\"\n  },\n  \"additionalneeds\": \"Breakfast\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200',()=>pm.response.to.have.status(200));",
+                  "const j=pm.response.json(); pm.test('bookingid returned',()=>pm.expect(j.bookingid).to.be.a('number').above(0)); pm.collectionVariables.set('bookingId',j.bookingid);",
+                  "pm.test('Booking echoes request',()=>{const j=pm.response.json().booking; pm.expect(j.firstname).eql('Alexander'); pm.expect(j.bookingdates.checkin).eql('2026-10-01');});",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-POST-002 Without additionalneeds",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstname\": \"NoNeed\",\n  \"lastname\": \"Guest\",\n  \"totalprice\": 50,\n  \"depositpaid\": false,\n  \"bookingdates\": {\n    \"checkin\": \"2026-11-01\",\n    \"checkout\": \"2026-11-02\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('ID returned',()=>pm.expect(pm.response.json().bookingid).to.be.a('number'));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-POST-003 Missing firstname [known defect]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lastname\": \"Ivanov\",\n  \"totalprice\": 123,\n  \"depositpaid\": true,\n  \"bookingdates\": {\n    \"checkin\": \"2026-10-01\",\n    \"checkout\": \"2026-10-02\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Client validation error 400/422',()=>pm.expect(pm.response.code).to.be.oneOf([400,422]));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-POST-004 Wrong field types [known defect]",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstname\": 123,\n  \"lastname\": false,\n  \"totalprice\": \"abc\",\n  \"depositpaid\": \"yes\",\n  \"bookingdates\": {\n    \"checkin\": \"bad\",\n    \"checkout\": 42\n  },\n  \"additionalneeds\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Client validation error 400/422',()=>pm.expect(pm.response.code).to.be.oneOf([400,422]));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 Filters",
+      "item": [
+        {
+          "name": "BOOK-FLT-001 Filter by firstname and lastname",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/booking?firstname=Alexander&lastname=Ivanov",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking"
+              ],
+              "query": [
+                {
+                  "key": "firstname",
+                  "value": "Alexander"
+                },
+                {
+                  "key": "lastname",
+                  "value": "Ivanov"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Array returned',()=>pm.expect(pm.response.json()).to.be.an('array'));",
+                  "pm.test('Created ID found',()=>pm.expect(pm.response.json().map(x=>x.bookingid)).to.include(Number(pm.collectionVariables.get('bookingId'))));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-FLT-004 Filter by dates",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/booking?checkin=2026-10-01&checkout=2026-10-02",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking"
+              ],
+              "query": [
+                {
+                  "key": "checkin",
+                  "value": "2026-10-01"
+                },
+                {
+                  "key": "checkout",
+                  "value": "2026-10-02"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Array returned',()=>pm.expect(pm.response.json()).to.be.an('array'));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-FLT-005 No matches",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/booking?firstname=NoSuch&lastname=Guest999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking"
+              ],
+              "query": [
+                {
+                  "key": "firstname",
+                  "value": "NoSuch"
+                },
+                {
+                  "key": "lastname",
+                  "value": "Guest999"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Empty array',()=>pm.expect(pm.response.json()).to.eql([]));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 Booking by ID",
+      "item": [
+        {
+          "name": "BOOK-GET-001 Get existing booking",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}"
+              ],
+              "query": []
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200',()=>pm.response.to.have.status(200));",
+                  "const j=pm.response.json(); pm.test('Schema fields',()=>{pm.expect(j).to.include.all.keys('firstname','lastname','totalprice','depositpaid','bookingdates');});",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-GET-002 Get nonexistent booking",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/booking/999999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "999999999"
+              ],
+              "query": []
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404',()=>pm.response.to.have.status(404));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-PUT-001 Full update",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "token={{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstname\": \"Full\",\n  \"lastname\": \"Updated\",\n  \"totalprice\": 222,\n  \"depositpaid\": false,\n  \"bookingdates\": {\n    \"checkin\": \"2026-12-01\",\n    \"checkout\": \"2026-12-03\"\n  },\n  \"additionalneeds\": \"Late checkout\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('All fields updated',()=>{const j=pm.response.json();pm.expect(j.firstname).eql('Full');pm.expect(j.totalprice).eql(222);});",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-PUT-003 Full update without auth",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstname\": \"Alexander\",\n  \"lastname\": \"Ivanov\",\n  \"totalprice\": 123,\n  \"depositpaid\": true,\n  \"bookingdates\": {\n    \"checkin\": \"2026-10-01\",\n    \"checkout\": \"2026-10-02\"\n  },\n  \"additionalneeds\": \"Breakfast\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 403',()=>pm.response.to.have.status(403));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-PATCH-001 Partial update",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "token={{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"firstname\":\"Patched\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200',()=>pm.response.to.have.status(200));",
+                  "pm.test('Only requested field changed',()=>{const j=pm.response.json();pm.expect(j.firstname).eql('Patched');pm.expect(j.lastname).eql('Updated');});",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-PATCH-003 Patch without auth",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"firstname\":\"Blocked\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 403',()=>pm.response.to.have.status(403));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-DEL-001 Delete booking",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "token={{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}"
+              ],
+              "query": []
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201',()=>pm.response.to.have.status(201));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-DEL-004 Verify deleted booking",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}"
+              ],
+              "query": []
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 404',()=>pm.response.to.have.status(404));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 Ping",
+      "item": [
+        {
+          "name": "PING-001 Health check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ping",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ping"
+              ],
+              "query": []
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 201',()=>pm.response.to.have.status(201));",
+                  "pm.test('Body Created',()=>pm.expect(pm.response.text()).to.eql('Created'));",
+                  "pm.test('Text response',()=>pm.expect(pm.response.headers.get('Content-Type')).to.include('text/plain')); ",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "06 Additional negative and boundary cases",
+      "item": [
+        {
+          "name": "AUTH-004 Empty body",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected status',()=>pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('Bad credentials',()=>pm.expect(pm.response.json().reason).eql('Bad credentials'));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "AUTH-005 Invalid JSON",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{bad json",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected status',()=>pm.expect(pm.response.code).to.be.oneOf([400]));",
+                  "pm.test('No token returned',()=>pm.expect(pm.response.text()).not.to.include('token'));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-POST-005 Checkout before checkin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstname\": \"Date\",\n  \"lastname\": \"Invalid\",\n  \"totalprice\": 10,\n  \"depositpaid\": false,\n  \"bookingdates\": {\n    \"checkin\": \"2026-10-10\",\n    \"checkout\": \"2026-10-01\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected status',()=>pm.expect(pm.response.code).to.be.oneOf([400,422]));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-POST-006 Invalid date format",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstname\": \"Date\",\n  \"lastname\": \"Format\",\n  \"totalprice\": 10,\n  \"depositpaid\": false,\n  \"bookingdates\": {\n    \"checkin\": \"01.10.2026\",\n    \"checkout\": \"02.10.2026\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected status',()=>pm.expect(pm.response.code).to.be.oneOf([400,422]));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-POST-007 Wrong Content-Type",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/plain"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstname\": \"Alexander\",\n  \"lastname\": \"Ivanov\",\n  \"totalprice\": 123,\n  \"depositpaid\": true,\n  \"bookingdates\": {\n    \"checkin\": \"2026-10-01\",\n    \"checkout\": \"2026-10-02\"\n  },\n  \"additionalneeds\": \"Breakfast\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected status',()=>pm.expect(pm.response.code).to.be.oneOf([400,415]));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-FLT-002 Filter by firstname",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/booking?firstname=Alexander",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking"
+              ],
+              "query": [
+                {
+                  "key": "firstname",
+                  "value": "Alexander"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected status',()=>pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('Array returned',()=>pm.expect(pm.response.json()).to.be.an('array'));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-FLT-003 Filter by lastname",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/booking?lastname=Ivanov",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking"
+              ],
+              "query": [
+                {
+                  "key": "lastname",
+                  "value": "Ivanov"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected status',()=>pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('Array returned',()=>pm.expect(pm.response.json()).to.be.an('array'));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-FLT-006 Invalid checkin filter",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/booking?checkin=not-a-date",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking"
+              ],
+              "query": [
+                {
+                  "key": "checkin",
+                  "value": "not-a-date"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected status',()=>pm.expect(pm.response.code).to.be.oneOf([400]));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-GET-003 Non-numeric ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/booking/abc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "abc"
+              ],
+              "query": []
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected status',()=>pm.expect(pm.response.code).to.be.oneOf([400,404]));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-PUT-002 Full update with Basic Auth",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Basic YWRtaW46cGFzc3dvcmQxMjM="
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstname\": \"Alexander\",\n  \"lastname\": \"Ivanov\",\n  \"totalprice\": 123,\n  \"depositpaid\": true,\n  \"bookingdates\": {\n    \"checkin\": \"2026-10-01\",\n    \"checkout\": \"2026-10-02\"\n  },\n  \"additionalneeds\": \"Breakfast\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected status',()=>pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('Updated body returned',()=>pm.expect(pm.response.json().firstname).eql('Alexander'));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-PUT-004 Invalid token",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "token=invalid"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstname\": \"Alexander\",\n  \"lastname\": \"Ivanov\",\n  \"totalprice\": 123,\n  \"depositpaid\": true,\n  \"bookingdates\": {\n    \"checkin\": \"2026-10-01\",\n    \"checkout\": \"2026-10-02\"\n  },\n  \"additionalneeds\": \"Breakfast\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected status',()=>pm.expect(pm.response.code).to.be.oneOf([403]));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-PUT-005 Incomplete PUT body",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "token={{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"firstname\":\"Only\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected status',()=>pm.expect(pm.response.code).to.be.oneOf([400,422]));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-PUT-006 Update nonexistent ID",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "token={{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking/999999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "999999999"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstname\": \"Alexander\",\n  \"lastname\": \"Ivanov\",\n  \"totalprice\": 123,\n  \"depositpaid\": true,\n  \"bookingdates\": {\n    \"checkin\": \"2026-10-01\",\n    \"checkout\": \"2026-10-02\"\n  },\n  \"additionalneeds\": \"Breakfast\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected status',()=>pm.expect(pm.response.code).to.be.oneOf([404]));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-PATCH-002 Patch multiple fields",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "token={{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"lastname\":\"Updated\",\"totalprice\":321}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected status',()=>pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('Fields updated',()=>{const j=pm.response.json();pm.expect(j.lastname).eql('Updated');pm.expect(j.totalprice).eql(321);});",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-PATCH-004 Invalid field type",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "token={{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\"totalprice\":\"abc\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected status',()=>pm.expect(pm.response.code).to.be.oneOf([400,422]));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-PATCH-005 Empty patch",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Cookie",
+                "value": "token={{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}"
+              ],
+              "query": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected status',()=>pm.expect(pm.response.code).to.be.oneOf([400,422]));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-DEL-002 Delete without auth",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}"
+              ],
+              "query": []
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected status',()=>pm.expect(pm.response.code).to.be.oneOf([403]));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "BOOK-DEL-003 Delete with invalid token",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "token=invalid"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/booking/{{bookingId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "booking",
+                "{{bookingId}}"
+              ],
+              "query": []
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected status',()=>pm.expect(pm.response.code).to.be.oneOf([403]));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PING-002 Unsupported POST",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ping",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ping"
+              ],
+              "query": []
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Expected status',()=>pm.expect(pm.response.code).to.be.oneOf([404]));",
+                  "pm.test('Response time is below 3000 ms', function () { pm.expect(pm.response.responseTime).to.be.below(3000); });",
+                  "pm.test('No server stack trace', function () { pm.expect(pm.response.text()).not.to.match(/Error:|at \\w+\\s*\\(/); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
